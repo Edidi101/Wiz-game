@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tap the Circle Game</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #87CEEB;
+        }
+        canvas {
+            background: white;
+            border: 2px solid #000;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <button id="restartButton" style="display: none;">Restart Game</button>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const restartButton = document.getElementById('restartButton');
+
+        let circle = { x: 200, y: 200, radius: 30 };
+        let score = 0;
+        let gameActive = true;
+        let timeLimit = 30; // 30 seconds
+        let timeRemaining = timeLimit;
+
+        function drawCircle() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText('Score: ' + score, 10, 20);
+            ctx.fillText('Time: ' + timeRemaining, 10, 40);
+        }
+
+        function moveCircle() {
+            circle.x = Math.random() * (canvas.width - circle.radius * 2) + circle.radius;
+            circle.y = Math.random() * (canvas.height - circle.radius * 2) + circle.radius;
+        }
+
+        canvas.addEventListener('touchstart', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const touchX = e.touches[0].clientX - rect.left;
+            const touchY = e.touches[0].clientY - rect.top;
+
+            const dist = Math.sqrt((touchX - circle.x) ** 2 + (touchY - circle.y) ** 2);
+            if (dist < circle.radius) {
+                score++;
+                moveCircle();
+            }
+        });
+
+        function gameLoop() {
+            if (!gameActive) return;
+            drawCircle();
+            setTimeout(() => {
+                if (timeRemaining > 0) {
+                    moveCircle();
+                    timeRemaining--;
+                    gameLoop();
+                } else {
+                    gameActive = false;
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('Game Over! Final Score: ' + score, 50, canvas.height / 2);
+                    restartButton.style.display = 'block'; // Show restart button
+                }
+            }, 1000); // Move circle every second
+        }
+
+        restartButton.addEventListener('click', () => {
+            score = 0;
+            timeRemaining = timeLimit;
+            gameActive = true;
+            restartButton.style.display = 'none'; // Hide restart button
+            moveCircle();
+            gameLoop();
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>
